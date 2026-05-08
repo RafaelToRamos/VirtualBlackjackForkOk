@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/SubstanceAssets/LittleGamesPack/Scenes/DemoScene.unity
+- path: Assets/EasyAssets/Korean_Style_Bar/BG/Demo Scenes/demo_sample.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0
