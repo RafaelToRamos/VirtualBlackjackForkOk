@@ -54,6 +54,21 @@ public class CardLayoutManager : MonoBehaviour
             obj.GetComponent<CardVisual>()?.FlipUp();
     }
 
+    // Módulo 5: posiciones para efectos de partículas
+    public Vector3 GetNextPlayerCardPosition()
+    {
+        if (playerCardOrigin == null) return Vector3.zero;
+        return playerCardOrigin.position +
+               playerCardOrigin.right * (playerCardObjects.Count * cardSpacing);
+    }
+
+    public Vector3 GetNextDealerCardPosition()
+    {
+        if (dealerCardOrigin == null) return Vector3.zero;
+        return dealerCardOrigin.position +
+               dealerCardOrigin.right * (dealerCardObjects.Count * cardSpacing);
+    }
+
     public void ClearTable()
     {
         foreach (var obj in playerCardObjects) Destroy(obj);
