@@ -1,10 +1,6 @@
 using UnityEngine;
 
-/// <summary>
-/// Módulo 5 — Effects Manager
-/// Maneja partículas y feedback visual del juego.
-/// Uso: EffectsManager.Instance.PlayWinEffect(transform.position);
-/// </summary>
+
 public class EffectsManager : MonoBehaviour
 {
     public static EffectsManager Instance { get; private set; }
@@ -34,25 +30,19 @@ public class EffectsManager : MonoBehaviour
 
     // ─── Efectos de resultado ─────────────────────────────────
 
-    /// <summary>Destello dorado en la posición indicada (ej: centro de la mesa).</summary>
     public void PlayWinEffect(Vector3 position)
     {
         SpawnEffect(winParticlePrefab, position);
     }
 
-    /// <summary>Efecto rojo tenue al perder.</summary>
     public void PlayLoseEffect(Vector3 position)
     {
         SpawnEffect(loseParticlePrefab, position);
     }
-
-    /// <summary>Efecto especial de Blackjack.</summary>
     public void PlayBlackjackEffect(Vector3 position)
     {
         SpawnEffect(blackjackParticlePrefab, position);
     }
-
-    /// <summary>Rastro de movimiento al repartir una carta. Úsalo en la posición de la carta.</summary>
     public void PlayCardDealEffect(Vector3 position)
     {
         SpawnEffect(cardDealParticlePrefab, position);
@@ -66,7 +56,6 @@ public class EffectsManager : MonoBehaviour
 
         GameObject fx = Instantiate(prefab, position, Quaternion.identity);
 
-        // Auto-destruir después de que terminen las partículas
         ParticleSystem ps = fx.GetComponent<ParticleSystem>();
         if (ps != null)
         {
