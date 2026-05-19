@@ -44,6 +44,7 @@ public class BlackjackGameManager : MonoBehaviour
         if (amount > playerChips || amount < minBet) return;
         currentBet = amount;
         playerChips -= amount;
+        AudioManager.Instance?.PlayChipPlace(); // Módulo 5
         StartCoroutine(DealInitialCards());
     }
 
@@ -68,6 +69,8 @@ public class BlackjackGameManager : MonoBehaviour
         if (playerHand.IsBlackjack())
         {
             ui.ShowMessage("Blackjack!");
+            AudioManager.Instance?.PlayBlackjack(); // Módulo 5
+            EffectsManager.Instance?.PlayBlackjackEffect(transform.position);
             yield return new WaitForSeconds(1f);
             StartCoroutine(DealerTurn());
         }
@@ -79,6 +82,17 @@ public class BlackjackGameManager : MonoBehaviour
         card.isFaceUp = faceUp;
         hand.AddCard(card);
         cardLayout.PlaceCard(card, isPlayer);
+
+        // Módulo 5: sonido y efecto al repartir carta
+        AudioManager.Instance?.PlayCardDeal();
+        if (cardLayout != null)
+        {
+            Vector3 cardPos = isPlayer
+                ? cardLayout.GetNextPlayerCardPosition()
+                : cardLayout.GetNextDealerCardPosition();
+            EffectsManager.Instance?.PlayCardDealEffect(cardPos);
+        }
+
         yield return new WaitForSeconds(0.3f);
     }
 
@@ -97,6 +111,8 @@ public class BlackjackGameManager : MonoBehaviour
         if (playerHand.IsBust())
         {
             ui.ShowMessage("Bust! You lose.");
+            AudioManager.Instance?.PlayBust(); // Módulo 5
+            EffectsManager.Instance?.PlayLoseEffect(transform.position);
             yield return new WaitForSeconds(1.5f);
             EndRound(playerWon: false, push: false);
         }
@@ -151,6 +167,7 @@ public class BlackjackGameManager : MonoBehaviour
 
         // Flip hole card
         RevealDealerHoleCard();
+        AudioManager.Instance?.PlayDealerReveal(); // Módulo 5
         yield return new WaitForSeconds(0.5f);
         ui.UpdateHands(playerHand.GetValue(), dealerHand.GetValue().ToString());
 
@@ -188,17 +205,23 @@ public class BlackjackGameManager : MonoBehaviour
         else if (playerBJ)
         {
             ui.ShowMessage("Blackjack! You win 3:2!");
+            AudioManager.Instance?.PlayBlackjack(); // Módulo 5
+            EffectsManager.Instance?.PlayBlackjackEffect(transform.position);
             playerChips += Mathf.RoundToInt(currentBet * 2.5f);
             EndRound(playerWon: true, push: false, skipChips: true);
         }
         else if (dealerBJ || (!playerBJ && dealerVal > playerVal && !dealerHand.IsBust()))
         {
             ui.ShowMessage("Dealer wins.");
+            AudioManager.Instance?.PlayLose(); // Módulo 5
+            EffectsManager.Instance?.PlayLoseEffect(transform.position);
             EndRound(playerWon: false, push: false);
         }
         else if (dealerHand.IsBust() || playerVal > dealerVal)
         {
             ui.ShowMessage("You win!");
+            AudioManager.Instance?.PlayWin(); // Módulo 5
+            EffectsManager.Instance?.PlayWinEffect(transform.position);
             EndRound(playerWon: true, push: false);
         }
         else if (playerVal == dealerVal)
@@ -209,6 +232,8 @@ public class BlackjackGameManager : MonoBehaviour
         else
         {
             ui.ShowMessage("Dealer wins.");
+            AudioManager.Instance?.PlayLose(); // Módulo 5
+            EffectsManager.Instance?.PlayLoseEffect(transform.position);
             EndRound(playerWon: false, push: false);
         }
     }

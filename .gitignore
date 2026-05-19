@@ -1,0 +1,31 @@
+# Unity generated
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+MemoryCaptures/
+
+# Unity cache
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.csproj
+*.sln
+*.user
+*.suo
+
+# macOS
+.DS_Store
+
+# JetBrains Rider
+.idea/
+*.rider.solution.dotsettings
