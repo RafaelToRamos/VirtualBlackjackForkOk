@@ -128,6 +128,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 009771fa50c920540be56c19c7d20113, type: 3}
   m_PrefabInstance: {fileID: 2121229082}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &31838670
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 31838672}
+  - component: {fileID: 31838671}
+  m_Layer: 0
+  m_Name: EffectsManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &31838671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 31838670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c877dc335ba91e4e82e63baaba1e777, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  winParticlePrefab: {fileID: 3593985479588782435, guid: bc8137be9570d8f49b7a3c66e5285abf, type: 3}
+  loseParticlePrefab: {fileID: 8998496996018913616, guid: fac32a31427f98f488f38870ad9a712e, type: 3}
+  cardDealParticlePrefab: {fileID: 4942761468613848156, guid: 234ee46f7d6e1d1418c2199e8f7e8603, type: 3}
+  blackjackParticlePrefab: {fileID: 4000937559748614650, guid: 77b4768c7656c8d4a9d48c0b210f3a10, type: 3}
+--- !u!4 &31838672
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 31838670}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 18
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &97164919
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -627,6 +674,59 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8955b48cd9c8fdb4d9fda74def002311, type: 3}
+--- !u!1 &819234971
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 819234973}
+  - component: {fileID: 819234972}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &819234972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 819234971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fd50f0364232104bbf2d9d333b09142, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  backgroundMusic: {fileID: 8300000, guid: 71bb475d352afa548b56a5eef825dbe5, type: 3}
+  musicVolume: 0.193
+  cardDealSound: {fileID: 8300000, guid: 6f832b8a3e105914b9fd976577f100a9, type: 3}
+  buttonClickSound: {fileID: 8300000, guid: 46be44723f8676847af9f2f9f65f8cbc, type: 3}
+  winSound: {fileID: 8300000, guid: 06e5df683bb594d4aae7a090cc9593fa, type: 3}
+  loseSound: {fileID: 8300000, guid: adefb291f99ae8b4a825a2e03640051f, type: 3}
+  chipPlaceSound: {fileID: 8300000, guid: 7e4614c083e5397418cbc59efcfab62b, type: 3}
+  dealerRevealSound: {fileID: 8300000, guid: 3c4598c7d1c335e4d974909a15d85572, type: 3}
+  blackjackSound: {fileID: 8300000, guid: 21c397e90240520458cd27edc71837d4, type: 3}
+  bustSound: {fileID: 8300000, guid: 3b7f182d26aeca74db929e65e63074b6, type: 3}
+--- !u!4 &819234973
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 819234971}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 17
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &830871548 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8568361400649990850, guid: 8955b48cd9c8fdb4d9fda74def002311, type: 3}
