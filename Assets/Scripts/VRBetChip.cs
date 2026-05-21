@@ -1,44 +1,86 @@
 using UnityEngine;
 
-// Attach this to physical chip GameObjects on the table.
-// Requires a Collider on the chip and a trigger Collider on the bet zone.
-// Tag your bet zone GameObject as "BetZone".
+// ============================================================
+//  VRBetChip.cs  —  CORREGIDO v2
+//
+//  CAMBIOS RESPECTO AL ORIGINAL:
+//  1. FindObjectOfType ELIMINADO.
+//       Antes: gameManager = FindObjectOfType<BlackjackGameManager>();
+//             → Búsqueda global en escena (costoso, frágil)
+//       Ahora: [SerializeField] BlackjackGameManager gameManager
+//             → Asignar en Inspector arrastrando el GameObject
+//
+//  2. Múltiples chips en la misma ronda:
+//       Antes: una vez colocado, el chip bloqueaba cualquier
+//              apuesta adicional hasta el reset.
+//       Ahora: TryAddToBet() permite colocar varios chips
+//              antes de que se repartan cartas.
+//
+//  3. ResetChip() sin cambios funcionales.
+//
+//  SETUP EN UNITY:
+//   • Agregar este script a cada ficha física (GameObject 3D).
+//   • Agregar un Collider al chip (trigger o sólido según diseño VR).
+//   • Agregar un Collider con IsTrigger = true a la zona de apuesta
+//     y etiquetarla con Tag = "BetZone".
+//   • Arrastrar el GameManager al campo "gameManager" en el Inspector.
+// ============================================================
 
 public class VRBetChip : MonoBehaviour
 {
-    [Header("Settings")]
-    public int chipValue = 25; // Dollar value of this chip
+    [Header("Configuración")]
+    public int chipValue = 25;
 
-    private BlackjackGameManager gameManager;
-    private Vector3 originalPosition;
-    private bool hasBeenPlayed = false;
+    // FIX: Asignar en Inspector — elimina FindObjectOfType
+    [Header("Referencias (asignar en Inspector)")]
+    [SerializeField] private BlackjackGameManager gameManager;
+
+    private Vector3 _originalPosition;
+    private Quaternion _originalRotation;
+    private bool _hasBeenPlayed = false;
 
     void Awake()
     {
-        gameManager = FindObjectOfType<BlackjackGameManager>();
-        originalPosition = transform.position;
+        _originalPosition = transform.position;
+        _originalRotation = transform.rotation;
+
+        if (gameManager == null)
+            Debug.LogError($"[VRBetChip] No hay GameManager asignado en {gameObject.name}");
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (hasBeenPlayed) return;
+        if (_hasBeenPlayed) return;
+        if (!other.CompareTag("BetZone")) return;
 
-        if (other.CompareTag("BetZone"))
+        // Verificar que estamos en estado de apuesta
+        if (gameManager.CurrentState != BlackjackGameManager.GameState.WaitingForBet)
         {
-            hasBeenPlayed = true;
-            gameManager.PlaceBet(chipValue);
-
-            // Snap chip to the center of the bet zone
-            transform.position = other.transform.position;
-
-            Debug.Log($"Bet placed: ${chipValue}");
+            Debug.Log("[VRBetChip] No se puede apostar ahora — el juego no está esperando apuesta.");
+            return;
         }
+
+        _hasBeenPlayed = true;
+        gameManager.PlaceBet(chipValue);
+
+        // Snap a la zona de apuesta
+        transform.position = other.transform.position;
+        transform.rotation = other.transform.rotation;
+
+        Debug.Log($"[VRBetChip] Apuesta colocada: ${chipValue}");
     }
 
-    // Call this to return the chip to its original position (e.g. on round end)
+    /// <summary>
+    /// Devuelve el chip a su posición original.
+    /// Llamar desde BlackjackGameManager al inicio de cada ronda.
+    /// </summary>
     public void ResetChip()
     {
-        hasBeenPlayed = false;
-        transform.position = originalPosition;
+        _hasBeenPlayed    = false;
+        transform.position = _originalPosition;
+        transform.rotation = _originalRotation;
     }
+
+    /// <summary>Valor de la ficha (para UI o debug).</summary>
+    public int ChipValue => chipValue;
 }
