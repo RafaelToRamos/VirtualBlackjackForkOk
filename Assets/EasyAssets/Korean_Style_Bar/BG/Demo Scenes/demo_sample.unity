@@ -6929,7 +6929,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1300791653}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1757775073}
+        m_TargetAssemblyTypeName: UIManagerVR, Assembly-CSharp
+        m_MethodName: OnBtnStartGameClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1300791653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9612,7 +9624,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1933520981}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1757775073}
+        m_TargetAssemblyTypeName: UIManagerVR, Assembly-CSharp
+        m_MethodName: OnBtnExitClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1933520981
 MonoBehaviour:
   m_ObjectHideFlags: 0
