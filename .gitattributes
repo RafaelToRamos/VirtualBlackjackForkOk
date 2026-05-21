@@ -1,0 +1,65 @@
+# ── Archivos de texto Unity (YAML) ──────────────────────────
+# eol=lf evita que Windows cambie los line endings y corrompa
+# los archivos .meta, lo que haría que Unity regenere GUIDs.
+*.cs            text eol=lf
+*.shader        text eol=lf
+*.cginc         text eol=lf
+*.hlsl          text eol=lf
+*.compute       text eol=lf
+
+# Archivos YAML de Unity — merge con UnityYAMLMerge
+*.mat           merge=unityyamlmerge eol=lf
+*.anim          merge=unityyamlmerge eol=lf
+*.unity         merge=unityyamlmerge eol=lf
+*.prefab        merge=unityyamlmerge eol=lf
+*.asset         merge=unityyamlmerge eol=lf
+*.meta          merge=unityyamlmerge eol=lf
+*.controller    merge=unityyamlmerge eol=lf
+*.overrideController merge=unityyamlmerge eol=lf
+*.physicsMaterial2D  merge=unityyamlmerge eol=lf
+*.physicsMaterial    merge=unityyamlmerge eol=lf
+*.playable      merge=unityyamlmerge eol=lf
+*.mask          merge=unityyamlmerge eol=lf
+*.brush         merge=unityyamlmerge eol=lf
+*.flare         merge=unityyamlmerge eol=lf
+*.fontsettings  merge=unityyamlmerge eol=lf
+*.guiskin       merge=unityyamlmerge eol=lf
+*.lighting      merge=unityyamlmerge eol=lf
+*.mixer         merge=unityyamlmerge eol=lf
+*.preset        merge=unityyamlmerge eol=lf
+*.spriteatlas   merge=unityyamlmerge eol=lf
+*.terrainlayer  merge=unityyamlmerge eol=lf
+*.rendertexture merge=unityyamlmerge eol=lf
+*.inputactions  merge=unityyamlmerge eol=lf
+
+# ── Binarios (no hacer diff ni merge de texto) ───────────────
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.bmp           binary
+*.tga           binary
+*.tif           binary
+*.tiff          binary
+*.psd           binary
+*.exr           binary
+*.hdr           binary
+*.mp3           binary
+*.wav           binary
+*.ogg           binary
+*.aif           binary
+*.fbx           binary
+*.FBX           binary
+*.blend         binary
+*.obj           binary
+*.3ds           binary
+*.dae           binary
+*.dll           binary
+*.so            binary
+*.a             binary
+*.lib           binary
+*.ttf           binary
+*.otf           binary
+*.zip           binary
+*.7z            binary
+*.gz            binary

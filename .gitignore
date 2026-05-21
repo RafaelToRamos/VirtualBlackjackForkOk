@@ -1,31 +1,53 @@
-# Unity generated
-Library/
-Temp/
-Obj/
-Build/
-Builds/
-Logs/
-UserSettings/
-MemoryCaptures/
+# ── Unity generated (NUNCA deben ir en git) ─────────────────
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emory[Cc]aptures/
+/[Rr]ecordings/
 
-# Unity cache
-[Ll]ibrary/
-[Tt]emp/
-[Oo]bj/
-[Bb]uild/
-[Bb]uilds/
-[Ll]ogs/
-
-# Visual Studio
-.vs/
+# ── Archivos de proyecto auto-generados por Unity/VS/Rider ──
+# (Unity los regenera solos; commitearlos causa conflictos)
 *.csproj
+*.unityproj
 *.sln
-*.user
 *.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
 
-# macOS
-.DS_Store
-
-# JetBrains Rider
+# ── IDEs ─────────────────────────────────────────────────────
+.vs/
 .idea/
 *.rider.solution.dotsettings
+*.rider.solution.dotsettings.user
+
+# ── OS ───────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Builds / distribución ────────────────────────────────────
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# ── IMPORTANTE: los .meta NUNCA se ignoran ───────────────────
+# Los .meta contienen los GUIDs de cada asset.
+# Si se ignoran, Unity regenera nuevos GUIDs y todas las
+# referencias internas del proyecto se rompen.
+# ¡NO añadir *.meta aquí!

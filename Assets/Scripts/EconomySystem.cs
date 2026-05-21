@@ -17,7 +17,6 @@ using UnityEngine;
 //    GetComponent<EconomySystem>() en Awake().
 // ============================================================
 
-[RequireComponent(typeof(BlackjackGameManager))]
 public class EconomySystem : MonoBehaviour
 {
     // ── Configuración (Inspector) ────────────────────────────

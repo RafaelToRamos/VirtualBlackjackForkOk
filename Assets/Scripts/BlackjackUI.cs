@@ -51,7 +51,7 @@ public class BlackjackUI : MonoBehaviour
     [SerializeField] private BlackjackGameManager gameManager;
 
     // ── Ciclo de vida ────────────────────────────────────────
-    void Awake()
+    void Start()
     {
         if (gameManager == null)
         {
