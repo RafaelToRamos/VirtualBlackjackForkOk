@@ -1,117 +1,65 @@
 using UnityEngine;
 
-// ============================================================
-//  CardVisual.cs  —  CORREGIDO v2
-//
-//  CAMBIOS RESPECTO AL ORIGINAL:
-//  1. isFaceUp MOVIDO aquí desde BlackjackCard.
-//       Antes: card.isFaceUp era un campo de BlackjackCard
-//             → mezclaba datos de lógica con presentación
-//       Ahora: _isFaceUp vive en este componente
-//             → CardVisual es el ÚNICO responsable de si
-//               la carta se muestra cara arriba o abajo.
-//
-//  2. Setup() ahora recibe faceUp como parámetro:
-//       visual.Setup(card, faceUp)
-//
-//  3. FlipUp() sin cambios funcionales.
-//  4. FlipDown() agregado (útil para animaciones futuras).
-// ============================================================
-
 public class CardVisual : MonoBehaviour
 {
-    // Índices de materiales del prefab de carta
-    // (ajustar si tu prefab usa un orden diferente)
+    // Material slot indices — adjust to match your prefab's material order
+    // Inspect your card prefab's MeshRenderer in Unity to confirm the order
     private const int FACE_SLOT = 0;
     private const int BACK_SLOT = 1;
 
-    [Header("Textura del reverso")]
-    public Texture2D cardBackTexture;
+    [Header("Card Back Texture")]
+    public Texture2D cardBackTexture; // Assign in Inspector or load from Resources
 
-    private MeshRenderer  _meshRenderer;
-    private Material[]    _materials;
-    private BlackjackCard _cardData;
-
-    // ── FIX: isFaceUp vive aquí, no en BlackjackCard ────────
-    private bool _isFaceUp = true;
+    private MeshRenderer meshRenderer;
+    private Material[] materials;
+    private BlackjackCard cardData;
 
     void Awake()
     {
-        _meshRenderer = GetComponent<MeshRenderer>();
-        if (_meshRenderer != null)
-            _materials = _meshRenderer.materials; // clonar para no modificar shared assets
+        meshRenderer = GetComponent<MeshRenderer>();
+        // Clone materials so we don't modify shared assets
+        materials = meshRenderer.materials;
     }
 
-    /// <summary>
-    /// Configura la carta con sus datos y estado visual inicial.
-    /// Llamado por CardLayoutManager al instanciar.
-    /// </summary>
-    public void Setup(BlackjackCard card, bool faceUp = true)
+    public void Setup(BlackjackCard card)
     {
-        _cardData  = card;
-        _isFaceUp  = faceUp;
-
-        if (_isFaceUp)
+        cardData = card;
+        if (card.isFaceUp)
             ShowFace();
         else
             ShowBack();
     }
 
-    /// <summary>Voltea la carta cara arriba (revela el valor).</summary>
     public void FlipUp()
     {
-        if (_cardData == null || _isFaceUp) return;
-        _isFaceUp = true;
-
-        // Animación de giro — versión básica sin animación
-        // Para animación suave, ver FlipWithAnimation() más abajo
-        transform.Rotate(0f, 180f, 0f, Space.Self);
+        if (cardData == null) return;
+        cardData.isFaceUp = true;
         ShowFace();
     }
 
-    /// <summary>Voltea la carta cara abajo (ocultar).</summary>
-    public void FlipDown()
-    {
-        if (_cardData == null || !_isFaceUp) return;
-        _isFaceUp = false;
-        transform.Rotate(0f, 180f, 0f, Space.Self);
-        ShowBack();
-    }
-
-    public bool IsFaceUp => _isFaceUp;
-
-    // ── Privado ──────────────────────────────────────────────
-
     void ShowFace()
     {
-        if (_cardData == null || _meshRenderer == null) return;
-
-        string texName = _cardData.GetSpriteName();
+        // Card textures should be in Resources/Cards/ named e.g. "ace_of_spades"
+        string texName = cardData.GetSpriteName();
         Texture2D tex = Resources.Load<Texture2D>($"Cards/{texName}");
 
         if (tex != null)
         {
-            _materials[FACE_SLOT].mainTexture = tex;
-            _meshRenderer.materials = _materials;
+            materials[FACE_SLOT].mainTexture = tex;
+            meshRenderer.materials = materials;
         }
         else
         {
-            Debug.LogWarning($"[CardVisual] Textura no encontrada: Resources/Cards/{texName}");
+            Debug.LogWarning($"Card texture not found: Resources/Cards/{texName}");
         }
     }
 
     void ShowBack()
     {
-        if (_meshRenderer == null) return;
-
         if (cardBackTexture != null)
         {
-            _materials[BACK_SLOT].mainTexture = cardBackTexture;
-            _meshRenderer.materials = _materials;
-        }
-        else
-        {
-            Debug.LogWarning("[CardVisual] No hay textura de reverso asignada.");
+            materials[BACK_SLOT].mainTexture = cardBackTexture;
+            meshRenderer.materials = materials;
         }
     }
 }
