@@ -7120,7 +7120,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1300791653}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1757775073}
+        m_TargetAssemblyTypeName: UIManagerVR, Assembly-CSharp
+        m_MethodName: OnBtnStartGameClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1300791653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7462,7 +7474,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1326819886
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7729,7 +7741,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1397270428
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7863,7 +7875,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1397510742
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9108,7 +9120,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1717604132
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9447,9 +9459,9 @@ MonoBehaviour:
   panelMenuInicial: {fileID: 388272312}
   panelJuego: {fileID: 0}
   panelGameOver: {fileID: 0}
-  txtScore: {fileID: 0}
-  txtApuesta: {fileID: 0}
-  txtMensajeResultado: {fileID: 0}
+  txtScore: {fileID: 1833820245}
+  txtApuesta: {fileID: 1717604133}
+  txtMensajeResultado: {fileID: 1397270429}
 --- !u!4 &1825984252 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6664564062200661583, guid: 9177d3f5d72425d47ae783279e798b73, type: 3}
@@ -9472,7 +9484,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1833820244
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9803,7 +9815,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1933520981}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1757775073}
+        m_TargetAssemblyTypeName: UIManagerVR, Assembly-CSharp
+        m_MethodName: OnBtnExitClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1933520981
 MonoBehaviour:
   m_ObjectHideFlags: 0
