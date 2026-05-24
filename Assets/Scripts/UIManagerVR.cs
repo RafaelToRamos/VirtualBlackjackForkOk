@@ -90,7 +90,7 @@ public class UIManagerVR : MonoBehaviour
     public void ActualizarUIJuego()
     {
         // El Integrante F cambiará estas variables por logic.GetPlayerScore() etc.
-        txtScore.text = "Score: $" + mockScore.ToString();
+        txtScore.text = "Puntaje: $" + mockScore.ToString();
         txtApuesta.text = "Apuesta: $" + mockApuesta.ToString();
     }
 
