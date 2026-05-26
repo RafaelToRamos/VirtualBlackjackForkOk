@@ -77,24 +77,26 @@ public class BlackjackGameManager : MonoBehaviour
     }
 
     IEnumerator DealCardTo(BlackjackHand hand, bool isPlayer, bool faceUp)
+{
+    BlackjackCard card = deck.DrawCard();
+    // card.isFaceUp = faceUp; ← ELIMINADO, isFaceUp ya no existe en BlackjackCard
+    hand.AddCard(card);
+
+    // FIX: pasar faceUp explícitamente a PlaceCard
+    cardLayout.PlaceCard(card, isPlayer, faceUp);
+
+    // Módulo 5: sonido y efecto 
+    AudioManager.Instance?.PlayCardDeal();
+    if (cardLayout != null)
     {
-        BlackjackCard card = deck.DrawCard();
-        card.isFaceUp = faceUp;
-        hand.AddCard(card);
-        cardLayout.PlaceCard(card, isPlayer);
-
-        // Módulo 5: sonido y efecto al repartir carta
-        AudioManager.Instance?.PlayCardDeal();
-        if (cardLayout != null)
-        {
-            Vector3 cardPos = isPlayer
-                ? cardLayout.GetNextPlayerCardPosition()
-                : cardLayout.GetNextDealerCardPosition();
-            EffectsManager.Instance?.PlayCardDealEffect(cardPos);
-        }
-
-        yield return new WaitForSeconds(0.3f);
+        Vector3 cardPos = isPlayer
+            ? cardLayout.GetNextPlayerCardPosition()
+            : cardLayout.GetNextDealerCardPosition();
+        EffectsManager.Instance?.PlayCardDealEffect(cardPos);
     }
+
+    yield return new WaitForSeconds(0.3f);
+}
 
     public void PlayerHit()
     {

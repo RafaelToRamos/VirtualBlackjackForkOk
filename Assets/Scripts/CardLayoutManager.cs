@@ -14,26 +14,24 @@ public class CardLayoutManager : MonoBehaviour
     private List<GameObject> playerCardObjects = new List<GameObject>();
     private List<GameObject> dealerCardObjects = new List<GameObject>();
 
-    public void PlaceCard(BlackjackCard card, bool isPlayer)
+    public void PlaceCard(BlackjackCard card, bool isPlayer, bool faceUp = true)
     {
         GameObject cardObj = Instantiate(cardPrefab);
 
-        // Add collider if not present
         if (cardObj.GetComponent<Collider>() == null)
         {
             BoxCollider col = cardObj.AddComponent<BoxCollider>();
-            col.size = new Vector3(0.063f, 0.001f, 0.088f); // Standard card size in meters
+            col.size = new Vector3(0.063f, 0.001f, 0.088f);
         }
 
-        // Apply card visual
         CardVisual visual = cardObj.GetComponent<CardVisual>();
         if (visual == null) visual = cardObj.AddComponent<CardVisual>();
-        visual.Setup(card);
+        visual.Setup(card, faceUp); // ahora faceUp existe como parámetro
 
         if (isPlayer)
         {
             Vector3 pos = playerCardOrigin.position +
-                          playerCardOrigin.right * (playerCardObjects.Count * cardSpacing);
+                        playerCardOrigin.right * (playerCardObjects.Count * cardSpacing);
             cardObj.transform.position = pos;
             cardObj.transform.rotation = playerCardOrigin.rotation;
             playerCardObjects.Add(cardObj);
@@ -41,7 +39,7 @@ public class CardLayoutManager : MonoBehaviour
         else
         {
             Vector3 pos = dealerCardOrigin.position +
-                          dealerCardOrigin.right * (dealerCardObjects.Count * cardSpacing);
+                        dealerCardOrigin.right * (dealerCardObjects.Count * cardSpacing);
             cardObj.transform.position = pos;
             cardObj.transform.rotation = dealerCardOrigin.rotation;
             dealerCardObjects.Add(cardObj);

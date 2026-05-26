@@ -13,6 +13,7 @@ public class CardVisual : MonoBehaviour
     private MeshRenderer meshRenderer;
     private Material[] materials;
     private BlackjackCard cardData;
+    private bool          _isFaceUp = true;
 
     void Awake()
     {
@@ -21,10 +22,12 @@ public class CardVisual : MonoBehaviour
         materials = meshRenderer.materials;
     }
 
-    public void Setup(BlackjackCard card)
+    public void Setup(BlackjackCard card, bool faceUp = true)  // ← agregar faceUp
     {
-        cardData = card;
-        if (card.isFaceUp)
+        cardData  = card;
+        _isFaceUp  = faceUp;
+
+        if (_isFaceUp)
             ShowFace();
         else
             ShowBack();

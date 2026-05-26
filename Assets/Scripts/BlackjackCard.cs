@@ -26,5 +26,17 @@ public class BlackjackCard
         return (int)rank;
     }
 
-    public string GetSpriteName() => $"{rank}_of_{suit}".ToLower();
+    public string GetSpriteName()
+    {
+        string rankStr = rank switch
+        {
+            Rank.Ace   => "ace",
+            Rank.Jack  => "jack",
+            Rank.Queen => "queen",
+            Rank.King  => "king",
+            _          => ((int)rank).ToString() // 2, 3, 4 ... 10
+        };
+        return $"{rankStr}_of_{suit}".ToLower();
+        // Genera: ace_of_spades, 8_of_diamonds, jack_of_hearts, etc.
+    }
 }
