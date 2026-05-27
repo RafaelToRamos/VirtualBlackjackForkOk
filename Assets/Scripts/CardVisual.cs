@@ -2,30 +2,27 @@ using UnityEngine;
 
 public class CardVisual : MonoBehaviour
 {
-    // Material slot indices — adjust to match your prefab's material order
-    // Inspect your card prefab's MeshRenderer in Unity to confirm the order
     private const int FACE_SLOT = 0;
-    private const int BACK_SLOT = 1;
 
     [Header("Card Back Texture")]
-    public Texture2D cardBackTexture; // Assign in Inspector or load from Resources
+    public Texture2D cardBackTexture;
 
-    private MeshRenderer meshRenderer;
-    private Material[] materials;
-    private BlackjackCard cardData;
+    private MeshRenderer  _meshRenderer;
+    private Material[]    _materials;
+    private BlackjackCard _cardData;
     private bool          _isFaceUp = true;
 
     void Awake()
     {
-        meshRenderer = GetComponent<MeshRenderer>();
-        // Clone materials so we don't modify shared assets
-        materials = meshRenderer.materials;
+        _meshRenderer = GetComponent<MeshRenderer>();
+        if (_meshRenderer != null)
+            _materials = _meshRenderer.materials;
     }
 
-    public void Setup(BlackjackCard card, bool faceUp = true)  // ← agregar faceUp
+    public void Setup(BlackjackCard card, bool faceUp = true)
     {
-        cardData  = card;
-        _isFaceUp  = faceUp;
+        _cardData = card;
+        _isFaceUp = faceUp;
 
         if (_isFaceUp)
             ShowFace();
@@ -33,36 +30,47 @@ public class CardVisual : MonoBehaviour
             ShowBack();
     }
 
+    /// <summary>
+    /// En lugar de rotar el GameObject, simplemente
+    /// cambia la textura del slot 0 por la de la carta real.
+    /// </summary>
     public void FlipUp()
     {
-        if (cardData == null) return;
-        cardData.isFaceUp = true;
-        ShowFace();
+        if (_cardData == null || _isFaceUp) return;
+        _isFaceUp = true;
+        ShowFace(); // solo swap de textura, sin rotación
     }
 
     void ShowFace()
     {
-        // Card textures should be in Resources/Cards/ named e.g. "ace_of_spades"
-        string texName = cardData.GetSpriteName();
+        if (_cardData == null || _meshRenderer == null) return;
+
+        string texName = _cardData.GetSpriteName();
         Texture2D tex = Resources.Load<Texture2D>($"Cards/{texName}");
 
         if (tex != null)
         {
-            materials[FACE_SLOT].mainTexture = tex;
-            meshRenderer.materials = materials;
+            _materials[FACE_SLOT].mainTexture = tex;
+            _meshRenderer.materials = _materials;
         }
         else
         {
-            Debug.LogWarning($"Card texture not found: Resources/Cards/{texName}");
+            Debug.LogWarning($"[CardVisual] Textura no encontrada: Resources/Cards/{texName}");
         }
     }
 
     void ShowBack()
     {
+        if (_meshRenderer == null) return;
+
         if (cardBackTexture != null)
         {
-            materials[BACK_SLOT].mainTexture = cardBackTexture;
-            meshRenderer.materials = materials;
+            _materials[FACE_SLOT].mainTexture = cardBackTexture; // mismo slot, distinta textura
+            _meshRenderer.materials = _materials;
+        }
+        else
+        {
+            Debug.LogWarning("[CardVisual] No hay textura de reverso asignada en el prefab.");
         }
     }
 }

@@ -61,6 +61,16 @@ public class UIManagerVR : MonoBehaviour
         gameManager.OnMessage      += HandleMessage;
         gameManager.OnStateChanged += HandleStateChanged;
         gameManager.OnRoundEnded   += HandleRoundEnded;
+        gameManager.OnDoubleAvailable += canDouble =>
+        {
+            if (doubleButton != null)
+                doubleButton.interactable = canDouble;
+        };
+        gameManager.OnSurrenderAvailable += canSurrender =>
+        {
+            if (surrenderButton != null)
+                surrenderButton.interactable = canSurrender;
+        };
 
         // Suscribir a eventos de economía
         gameManager.Economy.OnChipsChanged += HandleChipsChanged;
@@ -132,10 +142,12 @@ public class UIManagerVR : MonoBehaviour
                 ShowBetButtons(false);
                 ShowActionButtons(true);
                 // Double solo disponible con 2 cartas y fichas suficientes
+                /*
                 if (doubleButton != null)
                     doubleButton.interactable =
                         gameManager.PlayerHand.Cards.Count == 2 &&
                         gameManager.Economy.Chips >= gameManager.Economy.CurrentBet;
+                */
                 break;
 
             case BlackjackGameManager.GameState.DealerTurn:
@@ -177,7 +189,7 @@ public class UIManagerVR : MonoBehaviour
     {
         // Surrender: perder mitad de la apuesta y terminar la ronda
         // Por ahora funciona como Stand — puedes expandirlo después
-        Debug.Log("[UI] Surrender — termina como Stand.");
+        //Debug.Log("[UI] Surrender — termina como Stand.");
         gameManager.PlayerStand();
     }
 
@@ -190,6 +202,7 @@ public class UIManagerVR : MonoBehaviour
     public void OnBtnRestartClicked()
     {
         gameManager.Economy.ResetBalance();
+        gameManager.StartNewRound();
         MostrarPanelJuego();
     }
 

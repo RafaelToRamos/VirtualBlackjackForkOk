@@ -57,6 +57,8 @@ public class BlackjackGameManager : MonoBehaviour
     public event System.Action<GameState>        OnStateChanged;
     public event System.Action<RoundOutcome>     OnRoundEnded;
     public event System.Action<BlackjackCard, bool> OnCardDealt;
+    public event System.Action<bool> OnDoubleAvailable;
+    public event System.Action<bool> OnSurrenderAvailable;
 
     // ── Ciclo de vida ────────────────────────────────────────
     void Awake()
@@ -97,12 +99,18 @@ public class BlackjackGameManager : MonoBehaviour
     public void PlayerHit()
     {
         if (currentState != GameState.PlayerTurn) return;
+        //Debug.Log("[GM] PlayerHit llamado"); // ← agregar
         StartCoroutine(PlayerHitRoutine());
     }
 
     public void PlayerStand()
     {
         if (currentState != GameState.PlayerTurn) return;
+        if (playerHand.Cards.Count != 2) return; // solo en las primeras 2 cartas
+
+        OnMessage?.Invoke("Te rendiste. Recuperas la mitad.");
+        economy.SettleSurrender(); // devuelve mitad de la apuesta
+        EndRound(playerWon: false, push: false);
         StartCoroutine(DealerTurnRoutine());
     }
 
@@ -131,6 +139,7 @@ public class BlackjackGameManager : MonoBehaviour
         yield return new WaitForSeconds(0.4f);
 
         OnHandUpdated?.Invoke(playerHand.GetValue(), "?");
+        UpdateDoubleButton();
 
         if (playerHand.IsBlackjack())
         {
@@ -142,6 +151,14 @@ public class BlackjackGameManager : MonoBehaviour
         }
     }
 
+    void UpdateDoubleButton()
+    {
+        bool firstTwoCards = playerHand.Cards.Count == 2;
+        bool canDouble = playerHand.Cards.Count == 2 &&
+                        economy.Chips >= economy.CurrentBet;
+        OnDoubleAvailable?.Invoke(canDouble);
+        OnSurrenderAvailable?.Invoke(firstTwoCards);
+    }
     IEnumerator DealCardTo(BlackjackHand hand, bool isPlayer, bool faceUp)
     {
         BlackjackCard card = deck.DrawCard();
@@ -282,22 +299,29 @@ public class BlackjackGameManager : MonoBehaviour
     }
 
     void EndRound(bool playerWon, bool push, bool playerBlackjack = false)
+{
+    // 1. Primero liquidar — que las fichas estén correctas
+    economy.SettleRound(playerWon, push, playerBlackjack);
+
+    // 2. Luego cambiar estado — UIManagerVR ya ve las fichas correctas
+    SetState(GameState.RoundOver);
+
+    // 3. Emitir resultado
+    OnRoundEnded?.Invoke(new RoundOutcome
     {
-        SetState(GameState.RoundOver);
+        PlayerWon        = playerWon,
+        Push             = push,
+        PlayerBlackjack  = playerBlackjack,
+        PlayerScore      = playerHand.GetValue(),
+        DealerScore      = dealerHand.GetValue()
+    });
 
-        economy.SettleRound(playerWon, push, playerBlackjack);
+    // 4. Decidir si continuar o game over
+    if (economy.Chips < 10)
+        return;
 
-        OnRoundEnded?.Invoke(new RoundOutcome
-        {
-            PlayerWon        = playerWon,
-            Push             = push,
-            PlayerBlackjack  = playerBlackjack,
-            PlayerScore      = playerHand.GetValue(),
-            DealerScore      = dealerHand.GetValue()
-        });
-
-        Invoke(nameof(StartNewRound), 3f);
-    }
+    Invoke(nameof(StartNewRound), 3f);
+}
 
     void SetState(GameState newState)
     {

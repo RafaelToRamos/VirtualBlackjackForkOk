@@ -150,4 +150,14 @@ public class EconomySystem : MonoBehaviour
         _chips = startingChips;
         OnChipsChanged?.Invoke(_chips);
     }
+
+    public void SettleSurrender()
+    {
+        // Devolver la mitad de la apuesta al balance
+        int halfBet = Mathf.FloorToInt(_currentBet / 2f);
+        _chips += halfBet;
+        _currentBet = 0;
+        OnChipsChanged?.Invoke(_chips);
+    }
 }
+
