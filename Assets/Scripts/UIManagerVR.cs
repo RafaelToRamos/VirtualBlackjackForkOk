@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro; // Necesario para TextMeshPro
+using TMPro;
 using UnityEngine.UI;
 
 public class UIManagerVR : MonoBehaviour
@@ -9,100 +9,203 @@ public class UIManagerVR : MonoBehaviour
     public GameObject panelJuego;
     public GameObject panelGameOver;
 
-    [Header("Textos de Juego")]
-    public TextMeshProUGUI txtScore;
-    public TextMeshProUGUI txtApuesta;
-    public TextMeshProUGUI txtMensajeResultado;
+    [Header("Paneles dentro de GamePanel")]
+    public GameObject actionButtonPanel;  // ActionButtonPanel
+    public GameObject betButtonPanel;     // BetButtonPanel
 
-    [Header("Mock Data (Solo para pruebas)")]
-    private int mockScore = 1000;
-    private int mockApuesta = 50;
+    [Header("Textos")]
+    public TextMeshProUGUI txtScore;        // ScoreTag
+    public TextMeshProUGUI txtApuesta;      // BetTag
+    public TextMeshProUGUI txtDealer;       // DealerScoreTag
+    public TextMeshProUGUI txtMensaje;      // MessageTag
+    public TextMeshProUGUI txtChips;        // ChipsTag
+
+    [Header("Botones de acción")]
+    public Button hitButton;
+    public Button standButton;
+    public Button doubleButton;
+    public Button surrenderButton;
+
+    [Header("Botones de apuesta")]
+    public Button bet10Button;
+    public Button bet25Button;
+    public Button bet50Button;
+    public Button bet100Button;
+
+    [Header("Referencia al juego")]
+    [SerializeField] private BlackjackGameManager gameManager;
+
+    // ── Ciclo de vida ────────────────────────────────────────
+    void Awake()
+    {
+        if (gameManager == null)
+        {
+            Debug.LogError("[UIManagerVR] No hay BlackjackGameManager asignado.");
+            return;
+        }
+
+        // Conectar botones de acción
+        hitButton.onClick.AddListener(()       => gameManager.PlayerHit());
+        standButton.onClick.AddListener(()     => gameManager.PlayerStand());
+        doubleButton.onClick.AddListener(()    => gameManager.PlayerDoubleDown());
+        surrenderButton.onClick.AddListener(() => OnSurrender());
+
+        // Conectar botones de apuesta
+        bet10Button.onClick.AddListener(()  => gameManager.PlaceBet(10));
+        bet25Button.onClick.AddListener(()  => gameManager.PlaceBet(25));
+        bet50Button.onClick.AddListener(()  => gameManager.PlaceBet(50));
+        bet100Button.onClick.AddListener(() => gameManager.PlaceBet(100));
+
+        // Suscribir a eventos del GameManager
+        gameManager.OnHandUpdated  += HandleHandUpdated;
+        gameManager.OnMessage      += HandleMessage;
+        gameManager.OnStateChanged += HandleStateChanged;
+        gameManager.OnRoundEnded   += HandleRoundEnded;
+
+        // Suscribir a eventos de economía
+        gameManager.Economy.OnChipsChanged += HandleChipsChanged;
+        gameManager.Economy.OnBetPlaced    += HandleBetPlaced;
+    }
+
+    void OnDestroy()
+    {
+        if (gameManager == null) return;
+        gameManager.OnHandUpdated  -= HandleHandUpdated;
+        gameManager.OnMessage      -= HandleMessage;
+        gameManager.OnStateChanged -= HandleStateChanged;
+        gameManager.OnRoundEnded   -= HandleRoundEnded;
+        gameManager.Economy.OnChipsChanged -= HandleChipsChanged;
+        gameManager.Economy.OnBetPlaced    -= HandleBetPlaced;
+    }
 
     void Start()
     {
-        // Estado inicial: Mostrar solo el menú
         MostrarMenuInicial();
     }
 
-    // --- NAVEGACIÓN DE PANELES ---
+    // ── Navegación de paneles ────────────────────────────────
     public void MostrarMenuInicial()
     {
-        panelMenuInicial.SetActive(true);
-        panelJuego.SetActive(false);
-        panelGameOver.SetActive(false);
+        if (panelMenuInicial != null) panelMenuInicial.SetActive(true);
+        if (panelJuego != null)       panelJuego.SetActive(false);
+        if (panelGameOver != null)    panelGameOver.SetActive(false);
     }
 
     public void MostrarPanelJuego()
     {
-        panelMenuInicial.SetActive(false);
-        panelJuego.SetActive(true);
-        panelGameOver.SetActive(false);
-        ActualizarUIJuego();
+        if (panelMenuInicial != null) panelMenuInicial.SetActive(false);
+        if (panelJuego != null)       panelJuego.SetActive(true);
+        if (panelGameOver != null)    panelGameOver.SetActive(false);
     }
 
-    public void MostrarGameOver(string mensajeResultado)
+    public void MostrarGameOver(string mensaje)
     {
-        panelMenuInicial.SetActive(false);
-        panelJuego.SetActive(false);
-        panelGameOver.SetActive(true);
-        txtMensajeResultado.text = mensajeResultado;
+        if (panelMenuInicial != null) panelMenuInicial.SetActive(false);
+        if (panelJuego != null)       panelJuego.SetActive(false);
+        if (panelGameOver != null)    panelGameOver.SetActive(true);
+        if (txtMensaje != null)       txtMensaje.text = mensaje;
     }
 
-    // --- MÉTODOS PARA BOTONES DEL JUEGO (MOCK) ---
-    public void OnBtnHitClicked()
+    // ── Manejadores de eventos del GameManager ───────────────
+    void HandleHandUpdated(int playerScore, string dealerScore)
     {
-        Debug.Log("Jugador pide carta (Hit).");
-        // Aquí el Integrante F conectará: logic.DealCardToPlayer()
+        if (txtScore != null)  txtScore.text  = $"Jugador: {playerScore}";
+        if (txtDealer != null) txtDealer.text = $"Crupier: {dealerScore}";
     }
 
-    public void OnBtnStandClicked()
+    void HandleMessage(string msg)
     {
-        Debug.Log("Jugador se planta (Stand). Turno del crupier.");
-        MostrarGameOver("Te plantaste. ¡Ganaste la simulación!"); // Mock test
+        if (txtMensaje != null) txtMensaje.text = msg;
     }
 
-    public void OnBtnDoubleClicked()
+    void HandleStateChanged(BlackjackGameManager.GameState state)
     {
-        Debug.Log("Jugador dobla apuesta (Double).");
-        mockApuesta *= 2;
-        ActualizarUIJuego();
+        switch (state)
+        {
+            case BlackjackGameManager.GameState.WaitingForBet:
+                MostrarPanelJuego();
+                ShowBetButtons(true);
+                ShowActionButtons(false);
+                break;
+
+            case BlackjackGameManager.GameState.PlayerTurn:
+                ShowBetButtons(false);
+                ShowActionButtons(true);
+                // Double solo disponible con 2 cartas y fichas suficientes
+                if (doubleButton != null)
+                    doubleButton.interactable =
+                        gameManager.PlayerHand.Cards.Count == 2 &&
+                        gameManager.Economy.Chips >= gameManager.Economy.CurrentBet;
+                break;
+
+            case BlackjackGameManager.GameState.DealerTurn:
+                ShowActionButtons(false);
+                break;
+
+            case BlackjackGameManager.GameState.RoundOver:
+                ShowActionButtons(false);
+                ShowBetButtons(false);
+                // Si se quedó sin fichas, mostrar Game Over
+                if (gameManager.Economy.Chips <= 0)
+                    MostrarGameOver("¡Sin fichas! Fin del juego.");
+                break;
+        }
     }
-    
-    public void OnBtnSurrenderClicked()
+
+    void HandleRoundEnded(BlackjackGameManager.RoundOutcome outcome)
     {
-        Debug.Log("Jugador se rinde (Surrender).");
-        MostrarGameOver("Te rendiste.");
+        if (txtScore != null)
+            txtScore.text = $"Jugador: {outcome.PlayerScore}";
+        if (txtDealer != null)
+            txtDealer.text = $"Crupier: {outcome.DealerScore}";
+    }
+
+    void HandleChipsChanged(int chips)
+    {
+        if (txtChips != null)
+            txtChips.text = $"Fichas: ${chips}";
+    }
+
+    void HandleBetPlaced(int bet)
+    {
+        if (txtApuesta != null)
+            txtApuesta.text = $"Apuesta: ${bet}";
+    }
+
+    // ── Botones especiales ───────────────────────────────────
+    void OnSurrender()
+    {
+        // Surrender: perder mitad de la apuesta y terminar la ronda
+        // Por ahora funciona como Stand — puedes expandirlo después
+        Debug.Log("[UI] Surrender — termina como Stand.");
+        gameManager.PlayerStand();
+    }
+
+    public void OnBtnStartGameClicked()
+    {
+        MostrarPanelJuego();
+        gameManager.StartNewRound();
     }
 
     public void OnBtnRestartClicked()
-{
-    Debug.Log("Reiniciando el juego...");
-    
-    // 1. Restablecer los datos simulados (Mock Data) a sus valores iniciales
-    mockScore = 1000;
-    mockApuesta = 50;
-    
-    // 2. Volver a cargar el panel de juego para iniciar una nueva partida
-    MostrarPanelJuego();
-}
-
-    // --- ACTUALIZACIÓN DE DATOS ---
-    public void ActualizarUIJuego()
     {
-        // El Integrante F cambiará estas variables por logic.GetPlayerScore() etc.
-        txtScore.text = "Puntaje: $" + mockScore.ToString();
-        txtApuesta.text = "Apuesta: $" + mockApuesta.ToString();
-    }
-
-    // --- BOTONES DE MENÚ ---
-    public void OnBtnStartGameClicked()
-    {
+        gameManager.Economy.ResetBalance();
         MostrarPanelJuego();
     }
 
     public void OnBtnExitClicked()
     {
-        Debug.Log("Saliendo del juego...");
         Application.Quit();
+    }
+
+    // ── Helpers ──────────────────────────────────────────────
+    void ShowActionButtons(bool show)
+    {
+        if (actionButtonPanel != null) actionButtonPanel.SetActive(show);
+    }
+
+    void ShowBetButtons(bool show)
+    {
+        if (betButtonPanel != null) betButtonPanel.SetActive(show);
     }
 }
