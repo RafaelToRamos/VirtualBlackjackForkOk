@@ -1,32 +1,79 @@
 using System.Collections;
 using UnityEngine;
 
+// ============================================================
+//  BlackjackGameManager.cs — VERSIÓN FINAL
+//
+//  Cambios respecto al original:
+//  - Eliminada referencia a BlackjackUI (ya no existe)
+//  - Eliminado card.isFaceUp (ya no existe en BlackjackCard)
+//  - Regla soft 17 corregida (hard 17 = Vegas Strip)
+//  - Economía delegada a EconomySystem
+//  - Comunicación con UI via EVENTOS C# (no referencias directas)
+//  - RoundOutcome struct agregado para OnRoundEnded
+//  - AudioManager y EffectsManager mantenidos con ?.
+// ============================================================
+
+[RequireComponent(typeof(EconomySystem))]
 public class BlackjackGameManager : MonoBehaviour
 {
     public enum GameState { WaitingForBet, PlayerTurn, DealerTurn, RoundOver }
 
-    [Header("References")]
-    public BlackjackDeck deck;
-    public BlackjackUI ui;
+    // ── Resultado de ronda ───────────────────────────────────
+    public struct RoundOutcome
+    {
+        public bool PlayerWon;
+        public bool Push;
+        public bool PlayerBlackjack;
+        public bool DealerBlackjack;
+        public int  PlayerScore;
+        public int  DealerScore;
+    }
+
+    [Header("Referencias")]
+    public BlackjackDeck     deck;
     public CardLayoutManager cardLayout;
 
-    [Header("Settings")]
-    public int startingChips = 500;
-    public int minBet = 10;
-    public int maxBet = 500;
+    [Header("Configuración")]
+    public int numDecks = 6;
 
+    // ── Componente de economía ───────────────────────────────
+    private EconomySystem economy;
+    public  EconomySystem Economy => economy;
+
+    // ── Manos ────────────────────────────────────────────────
     private BlackjackHand playerHand = new BlackjackHand();
     private BlackjackHand dealerHand = new BlackjackHand();
+    public  BlackjackHand PlayerHand => playerHand;
+    public  BlackjackHand DealerHand => dealerHand;
+
+    // ── Estado ───────────────────────────────────────────────
     private GameState currentState;
-    private int playerChips;
-    private int currentBet;
+    public  GameState CurrentState => currentState;
+
+    // ── Eventos (UIManagerVR se suscribe a estos) ────────────
+    public event System.Action<int, string>      OnHandUpdated;
+    public event System.Action<string>           OnMessage;
+    public event System.Action<GameState>        OnStateChanged;
+    public event System.Action<RoundOutcome>     OnRoundEnded;
+    public event System.Action<BlackjackCard, bool> OnCardDealt;
+
+    // ── Ciclo de vida ────────────────────────────────────────
+    void Awake()
+    {
+        economy = GetComponent<EconomySystem>();
+    }
 
     void Start()
     {
-        playerChips = startingChips;
-        deck.Initialize(numDecks: 6); // Casino standard: 6 decks
-        StartNewRound();
+        deck.Initialize(numDecks);
+        deck.OnDeckLow += () => OnMessage?.Invoke("Remezclar mazo...");
+        // StartNewRound() lo llama UIManagerVR al presionar Start
+        // Si quieres que arranque solo, descomenta la línea de abajo:
+        // StartNewRound();
     }
+
+    // ── API Pública ──────────────────────────────────────────
 
     public void StartNewRound()
     {
@@ -34,69 +81,18 @@ public class BlackjackGameManager : MonoBehaviour
         dealerHand.Clear();
         cardLayout.ClearTable();
 
-        currentState = GameState.WaitingForBet;
-        ui.UpdateState("Place your bet!", playerChips, 0);
-        ui.ShowBetButtons(true);
+        SetState(GameState.WaitingForBet);
+        OnMessage?.Invoke("Coloca tu apuesta");
     }
 
     public void PlaceBet(int amount)
     {
-        if (amount > playerChips || amount < minBet) return;
-        currentBet = amount;
-        playerChips -= amount;
-        AudioManager.Instance?.PlayChipPlace(); // Módulo 5
+        if (currentState != GameState.WaitingForBet) return;
+        if (!economy.TryPlaceBet(amount)) return;
+
+        AudioManager.Instance?.PlayChipPlace();
         StartCoroutine(DealInitialCards());
     }
-
-    IEnumerator DealInitialCards()
-    {
-        ui.ShowBetButtons(false);
-        currentState = GameState.PlayerTurn;
-
-        // Classic deal order: Player, Dealer, Player, Dealer (face down)
-        yield return DealCardTo(playerHand, isPlayer: true, faceUp: true);
-        yield return new WaitForSeconds(0.4f);
-        yield return DealCardTo(dealerHand, isPlayer: false, faceUp: true);
-        yield return new WaitForSeconds(0.4f);
-        yield return DealCardTo(playerHand, isPlayer: true, faceUp: true);
-        yield return new WaitForSeconds(0.4f);
-        yield return DealCardTo(dealerHand, isPlayer: false, faceUp: false); // Hole card
-        yield return new WaitForSeconds(0.4f);
-
-        ui.UpdateHands(playerHand.GetValue(), "?");
-        ui.ShowActionButtons(true);
-
-        if (playerHand.IsBlackjack())
-        {
-            ui.ShowMessage("Blackjack!");
-            AudioManager.Instance?.PlayBlackjack(); // Módulo 5
-            EffectsManager.Instance?.PlayBlackjackEffect(transform.position);
-            yield return new WaitForSeconds(1f);
-            StartCoroutine(DealerTurn());
-        }
-    }
-
-    IEnumerator DealCardTo(BlackjackHand hand, bool isPlayer, bool faceUp)
-{
-    BlackjackCard card = deck.DrawCard();
-    // card.isFaceUp = faceUp; ← ELIMINADO, isFaceUp ya no existe en BlackjackCard
-    hand.AddCard(card);
-
-    // FIX: pasar faceUp explícitamente a PlaceCard
-    cardLayout.PlaceCard(card, isPlayer, faceUp);
-
-    // Módulo 5: sonido y efecto 
-    AudioManager.Instance?.PlayCardDeal();
-    if (cardLayout != null)
-    {
-        Vector3 cardPos = isPlayer
-            ? cardLayout.GetNextPlayerCardPosition()
-            : cardLayout.GetNextDealerCardPosition();
-        EffectsManager.Instance?.PlayCardDealEffect(cardPos);
-    }
-
-    yield return new WaitForSeconds(0.3f);
-}
 
     public void PlayerHit()
     {
@@ -104,151 +100,208 @@ public class BlackjackGameManager : MonoBehaviour
         StartCoroutine(PlayerHitRoutine());
     }
 
-    IEnumerator PlayerHitRoutine()
-    {
-        ui.ShowActionButtons(false);
-        yield return DealCardTo(playerHand, isPlayer: true, faceUp: true);
-        ui.UpdateHands(playerHand.GetValue(), "?");
-
-        if (playerHand.IsBust())
-        {
-            ui.ShowMessage("Bust! You lose.");
-            AudioManager.Instance?.PlayBust(); // Módulo 5
-            EffectsManager.Instance?.PlayLoseEffect(transform.position);
-            yield return new WaitForSeconds(1.5f);
-            EndRound(playerWon: false, push: false);
-        }
-        else
-        {
-            ui.ShowActionButtons(true);
-        }
-    }
-
     public void PlayerStand()
     {
         if (currentState != GameState.PlayerTurn) return;
-        ui.ShowActionButtons(false);
-        StartCoroutine(DealerTurn());
+        StartCoroutine(DealerTurnRoutine());
     }
 
     public void PlayerDoubleDown()
     {
         if (currentState != GameState.PlayerTurn) return;
-        if (playerChips < currentBet) return; // Can't afford double
-        if (playerHand.Cards.Count != 2) return; // Only on first two cards
-
-        playerChips -= currentBet;
-        currentBet *= 2;
-        ui.UpdateState(null, playerChips, currentBet);
+        if (playerHand.Cards.Count != 2) return;
+        if (!economy.TryDoubleDown()) return;
 
         StartCoroutine(DoubleDownRoutine());
     }
 
+    // ── Corrutinas ───────────────────────────────────────────
+
+    IEnumerator DealInitialCards()
+    {
+        SetState(GameState.PlayerTurn);
+
+        yield return DealCardTo(playerHand, isPlayer: true,  faceUp: true);
+        yield return new WaitForSeconds(0.4f);
+        yield return DealCardTo(dealerHand, isPlayer: false, faceUp: true);
+        yield return new WaitForSeconds(0.4f);
+        yield return DealCardTo(playerHand, isPlayer: true,  faceUp: true);
+        yield return new WaitForSeconds(0.4f);
+        yield return DealCardTo(dealerHand, isPlayer: false, faceUp: false); // carta hoyo
+        yield return new WaitForSeconds(0.4f);
+
+        OnHandUpdated?.Invoke(playerHand.GetValue(), "?");
+
+        if (playerHand.IsBlackjack())
+        {
+            OnMessage?.Invoke("¡Blackjack!");
+            AudioManager.Instance?.PlayBlackjack();
+            EffectsManager.Instance?.PlayBlackjackEffect(transform.position);
+            yield return new WaitForSeconds(1f);
+            yield return DealerTurnRoutine();
+        }
+    }
+
+    IEnumerator DealCardTo(BlackjackHand hand, bool isPlayer, bool faceUp)
+    {
+        BlackjackCard card = deck.DrawCard();
+        hand.AddCard(card);
+        cardLayout.PlaceCard(card, isPlayer, faceUp);
+        OnCardDealt?.Invoke(card, isPlayer);
+
+        AudioManager.Instance?.PlayCardDeal();
+        if (cardLayout != null)
+        {
+            Vector3 cardPos = isPlayer
+                ? cardLayout.GetNextPlayerCardPosition()
+                : cardLayout.GetNextDealerCardPosition();
+            EffectsManager.Instance?.PlayCardDealEffect(cardPos);
+        }
+
+        yield return new WaitForSeconds(0.3f);
+    }
+
+    IEnumerator PlayerHitRoutine()
+    {
+        yield return DealCardTo(playerHand, isPlayer: true, faceUp: true);
+        OnHandUpdated?.Invoke(playerHand.GetValue(), "?");
+
+        if (playerHand.IsBust())
+        {
+            OnMessage?.Invoke("¡Bust! Pierdes.");
+            AudioManager.Instance?.PlayBust();
+            EffectsManager.Instance?.PlayLoseEffect(transform.position);
+            yield return new WaitForSeconds(1.5f);
+            EndRound(playerWon: false, push: false);
+        }
+    }
+
     IEnumerator DoubleDownRoutine()
     {
-        ui.ShowActionButtons(false);
         yield return DealCardTo(playerHand, isPlayer: true, faceUp: true);
-        ui.UpdateHands(playerHand.GetValue(), "?");
+        OnHandUpdated?.Invoke(playerHand.GetValue(), "?");
         yield return new WaitForSeconds(0.5f);
 
         if (playerHand.IsBust())
         {
-            ui.ShowMessage("Bust! You lose.");
+            OnMessage?.Invoke("¡Bust! Pierdes.");
             yield return new WaitForSeconds(1.5f);
             EndRound(playerWon: false, push: false);
         }
         else
         {
-            StartCoroutine(DealerTurn());
+            yield return DealerTurnRoutine();
         }
     }
 
-    IEnumerator DealerTurn()
+    IEnumerator DealerTurnRoutine()
     {
-        currentState = GameState.DealerTurn;
+        SetState(GameState.DealerTurn);
 
-        // Flip hole card
-        RevealDealerHoleCard();
-        AudioManager.Instance?.PlayDealerReveal(); // Módulo 5
+        // Revelar carta hoyo
+        cardLayout.FlipAllDealerCards();
+        AudioManager.Instance?.PlayDealerReveal();
         yield return new WaitForSeconds(0.5f);
-        ui.UpdateHands(playerHand.GetValue(), dealerHand.GetValue().ToString());
+        OnHandUpdated?.Invoke(playerHand.GetValue(), dealerHand.GetValue().ToString());
 
-        // Dealer hits on soft 17 (standard casino rule)
-        while (dealerHand.GetValue() < 17 || (dealerHand.GetValue() == 17 && dealerHand.IsSoft()))
+        // Regla hard 17 — crupier se planta en cualquier 17
+        while (dealerHand.GetValue() < 17)
         {
             yield return new WaitForSeconds(0.8f);
             yield return DealCardTo(dealerHand, isPlayer: false, faceUp: true);
-            ui.UpdateHands(playerHand.GetValue(), dealerHand.GetValue().ToString());
+            OnHandUpdated?.Invoke(playerHand.GetValue(), dealerHand.GetValue().ToString());
         }
 
         yield return new WaitForSeconds(0.5f);
         ResolveRound();
     }
 
-    void RevealDealerHoleCard()
-    {
-        foreach (var card in dealerHand.Cards)
-            card.isFaceUp = true;
-        cardLayout.FlipAllDealerCards();
-    }
+    // ── Lógica de resolución ─────────────────────────────────
 
     void ResolveRound()
     {
-        int playerVal = playerHand.GetValue();
-        int dealerVal = dealerHand.GetValue();
-        bool playerBJ = playerHand.IsBlackjack();
-        bool dealerBJ = dealerHand.IsBlackjack();
+        int  playerVal = playerHand.GetValue();
+        int  dealerVal = dealerHand.GetValue();
+        bool playerBJ  = playerHand.IsBlackjack();
+        bool dealerBJ  = dealerHand.IsBlackjack();
+
+        bool playerWon = false;
+        bool push      = false;
+        string message;
 
         if (dealerBJ && playerBJ)
         {
-            ui.ShowMessage("Push — both Blackjack!");
-            EndRound(playerWon: false, push: true);
+            message = "¡Empate — ambos Blackjack!";
+            push = true;
         }
         else if (playerBJ)
         {
-            ui.ShowMessage("Blackjack! You win 3:2!");
-            AudioManager.Instance?.PlayBlackjack(); // Módulo 5
+            message = "¡Blackjack! Ganas 3:2";
+            playerWon = true;
+            AudioManager.Instance?.PlayBlackjack();
             EffectsManager.Instance?.PlayBlackjackEffect(transform.position);
-            playerChips += Mathf.RoundToInt(currentBet * 2.5f);
-            EndRound(playerWon: true, push: false, skipChips: true);
         }
-        else if (dealerBJ || (!playerBJ && dealerVal > playerVal && !dealerHand.IsBust()))
+        else if (dealerBJ)
         {
-            ui.ShowMessage("Dealer wins.");
-            AudioManager.Instance?.PlayLose(); // Módulo 5
+            message = "Crupier tiene Blackjack. Pierdes.";
+            AudioManager.Instance?.PlayLose();
             EffectsManager.Instance?.PlayLoseEffect(transform.position);
-            EndRound(playerWon: false, push: false);
         }
-        else if (dealerHand.IsBust() || playerVal > dealerVal)
+        else if (playerHand.IsBust())
         {
-            ui.ShowMessage("You win!");
-            AudioManager.Instance?.PlayWin(); // Módulo 5
+            message = "¡Bust! Crupier gana.";
+        }
+        else if (dealerHand.IsBust())
+        {
+            message = "¡Crupier bust! Ganas.";
+            playerWon = true;
+            AudioManager.Instance?.PlayWin();
             EffectsManager.Instance?.PlayWinEffect(transform.position);
-            EndRound(playerWon: true, push: false);
         }
-        else if (playerVal == dealerVal)
+        else if (playerVal > dealerVal)
         {
-            ui.ShowMessage("Push!");
-            EndRound(playerWon: false, push: true);
+            message = $"¡Ganas! {playerVal} vs {dealerVal}";
+            playerWon = true;
+            AudioManager.Instance?.PlayWin();
+            EffectsManager.Instance?.PlayWinEffect(transform.position);
+        }
+        else if (dealerVal > playerVal)
+        {
+            message = $"Crupier gana. {dealerVal} vs {playerVal}";
+            AudioManager.Instance?.PlayLose();
+            EffectsManager.Instance?.PlayLoseEffect(transform.position);
         }
         else
         {
-            ui.ShowMessage("Dealer wins.");
-            AudioManager.Instance?.PlayLose(); // Módulo 5
-            EffectsManager.Instance?.PlayLoseEffect(transform.position);
-            EndRound(playerWon: false, push: false);
+            message = $"¡Empate! {playerVal}";
+            push = true;
         }
+
+        OnMessage?.Invoke(message);
+        EndRound(playerWon, push, playerBJ);
     }
 
-    void EndRound(bool playerWon, bool push, bool skipChips = false)
+    void EndRound(bool playerWon, bool push, bool playerBlackjack = false)
     {
-        currentState = GameState.RoundOver;
-        if (!skipChips)
+        SetState(GameState.RoundOver);
+
+        economy.SettleRound(playerWon, push, playerBlackjack);
+
+        OnRoundEnded?.Invoke(new RoundOutcome
         {
-            if (playerWon) playerChips += currentBet * 2;
-            else if (push) playerChips += currentBet;
-        }
-        ui.UpdateState(null, playerChips, 0);
+            PlayerWon        = playerWon,
+            Push             = push,
+            PlayerBlackjack  = playerBlackjack,
+            PlayerScore      = playerHand.GetValue(),
+            DealerScore      = dealerHand.GetValue()
+        });
+
         Invoke(nameof(StartNewRound), 3f);
+    }
+
+    void SetState(GameState newState)
+    {
+        currentState = newState;
+        OnStateChanged?.Invoke(newState);
     }
 }

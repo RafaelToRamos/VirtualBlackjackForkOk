@@ -5,6 +5,13 @@ public class BlackjackDeck : MonoBehaviour
 {
     private List<BlackjackCard> cards = new List<BlackjackCard>();
 
+    // ── NUEVO: evento para notificar mazo bajo ───────────────
+    public event System.Action OnDeckLow;
+    private int _totalCards = 0;
+    [Range(0.1f, 0.5f)]
+    public float reshuffleThreshold = 0.25f;
+    // ────────────────────────────────────────────────────────
+
     public void Initialize(int numDecks = 1)
     {
         cards.Clear();
@@ -12,6 +19,8 @@ public class BlackjackDeck : MonoBehaviour
             foreach (BlackjackCard.Suit s in System.Enum.GetValues(typeof(BlackjackCard.Suit)))
                 foreach (BlackjackCard.Rank r in System.Enum.GetValues(typeof(BlackjackCard.Rank)))
                     cards.Add(new BlackjackCard(s, r));
+
+        _totalCards = cards.Count; // NUEVO: guardar total
         Shuffle();
     }
 
@@ -29,10 +38,18 @@ public class BlackjackDeck : MonoBehaviour
         if (cards.Count == 0)
         {
             Debug.LogWarning("Deck empty — reshuffling!");
-            Initialize();
+            Initialize(_totalCards / 52);
         }
-        BlackjackCard card = cards[0];
-        cards.RemoveAt(0);
+
+        // NUEVO: extraer desde el final (O(1) en vez de O(n))
+        int last = cards.Count - 1;
+        BlackjackCard card = cards[last];
+        cards.RemoveAt(last);
+
+        // NUEVO: verificar umbral y emitir evento
+        if (_totalCards > 0 && cards.Count <= _totalCards * reshuffleThreshold)
+            OnDeckLow?.Invoke();
+
         return card;
     }
 
