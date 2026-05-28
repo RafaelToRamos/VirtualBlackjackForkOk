@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class CardVisual : MonoBehaviour
@@ -38,7 +39,40 @@ public class CardVisual : MonoBehaviour
     {
         if (_cardData == null || _isFaceUp) return;
         _isFaceUp = true;
-        ShowFace(); // solo swap de textura, sin rotación
+        ShowFace();
+    }
+
+    public IEnumerator FlipUpAnimated(float duration = 0.5f)
+    {
+        if (_cardData == null || _isFaceUp) yield break;
+
+        float half = duration / 2f;
+        float elapsed = 0f;
+        Vector3 originalScale = transform.localScale;
+
+        // Achatar la carta hasta 0
+        while (elapsed < half)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / half));
+            transform.localScale = new Vector3(originalScale.x * (1f - t), originalScale.y, originalScale.z);
+            yield return null;
+        }
+        transform.localScale = new Vector3(0f, originalScale.y, originalScale.z);
+
+        _isFaceUp = true;
+        ShowFace();
+
+        // Expandir de vuelta al tamaño original
+        elapsed = 0f;
+        while (elapsed < half)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / half));
+            transform.localScale = new Vector3(originalScale.x * t, originalScale.y, originalScale.z);
+            yield return null;
+        }
+        transform.localScale = originalScale;
     }
 
     void ShowFace()

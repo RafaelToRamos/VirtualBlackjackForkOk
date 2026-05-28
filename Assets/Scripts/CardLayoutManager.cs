@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -50,6 +51,16 @@ public class CardLayoutManager : MonoBehaviour
     {
         foreach (var obj in dealerCardObjects)
             obj.GetComponent<CardVisual>()?.FlipUp();
+    }
+
+    public IEnumerator FlipDealerCardsCoroutine(float duration = 0.5f)
+    {
+        foreach (var obj in dealerCardObjects)
+        {
+            CardVisual visual = obj.GetComponent<CardVisual>();
+            if (visual != null)
+                yield return visual.FlipUpAnimated(duration);
+        }
     }
 
     // Módulo 5: posiciones para efectos de partículas

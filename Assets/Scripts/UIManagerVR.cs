@@ -48,7 +48,7 @@ public class UIManagerVR : MonoBehaviour
         hitButton.onClick.AddListener(()       => gameManager.PlayerHit());
         standButton.onClick.AddListener(()     => gameManager.PlayerStand());
         doubleButton.onClick.AddListener(()    => gameManager.PlayerDoubleDown());
-        surrenderButton.onClick.AddListener(() => OnSurrender());
+        surrenderButton.onClick.AddListener(() => gameManager.PlayerSurrender());
 
         // Conectar botones de apuesta
         bet10Button.onClick.AddListener(()  => gameManager.PlaceBet(10));
@@ -182,15 +182,6 @@ public class UIManagerVR : MonoBehaviour
     {
         if (txtApuesta != null)
             txtApuesta.text = $"Apuesta: ${bet}";
-    }
-
-    // ── Botones especiales ───────────────────────────────────
-    void OnSurrender()
-    {
-        // Surrender: perder mitad de la apuesta y terminar la ronda
-        // Por ahora funciona como Stand — puedes expandirlo después
-        //Debug.Log("[UI] Surrender — termina como Stand.");
-        gameManager.PlayerStand();
     }
 
     public void OnBtnStartGameClicked()

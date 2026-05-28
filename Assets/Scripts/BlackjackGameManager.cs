@@ -106,12 +106,17 @@ public class BlackjackGameManager : MonoBehaviour
     public void PlayerStand()
     {
         if (currentState != GameState.PlayerTurn) return;
-        if (playerHand.Cards.Count != 2) return; // solo en las primeras 2 cartas
+        StartCoroutine(DealerTurnRoutine());
+    }
+
+    public void PlayerSurrender()
+    {
+        if (currentState != GameState.PlayerTurn) return;
+        if (playerHand.Cards.Count != 2) return;
 
         OnMessage?.Invoke("Te rendiste. Recuperas la mitad.");
-        economy.SettleSurrender(); // devuelve mitad de la apuesta
-        EndRound(playerWon: false, push: false);
-        StartCoroutine(DealerTurnRoutine());
+        economy.SettleSurrender();
+        StartCoroutine(SurrenderRoutine());
     }
 
     public void PlayerDoubleDown()
@@ -159,6 +164,15 @@ public class BlackjackGameManager : MonoBehaviour
         OnDoubleAvailable?.Invoke(canDouble);
         OnSurrenderAvailable?.Invoke(firstTwoCards);
     }
+    IEnumerator SurrenderRoutine()
+    {
+        yield return StartCoroutine(cardLayout.FlipDealerCardsCoroutine());
+        AudioManager.Instance?.PlayDealerReveal();
+        yield return new WaitForSeconds(0.5f);
+        OnHandUpdated?.Invoke(playerHand.GetValue(), dealerHand.GetValue().ToString());
+        EndRound(playerWon: false, push: false);
+    }
+
     IEnumerator DealCardTo(BlackjackHand hand, bool isPlayer, bool faceUp)
     {
         BlackjackCard card = deck.DrawCard();
@@ -182,6 +196,7 @@ public class BlackjackGameManager : MonoBehaviour
     {
         yield return DealCardTo(playerHand, isPlayer: true, faceUp: true);
         OnHandUpdated?.Invoke(playerHand.GetValue(), "?");
+        UpdateDoubleButton(); // deshabilita doble y rendirse después de 3+ cartas
 
         if (playerHand.IsBust())
         {
@@ -215,8 +230,8 @@ public class BlackjackGameManager : MonoBehaviour
     {
         SetState(GameState.DealerTurn);
 
-        // Revelar carta hoyo
-        cardLayout.FlipAllDealerCards();
+        // Revelar carta hoyo con animación
+        yield return StartCoroutine(cardLayout.FlipDealerCardsCoroutine());
         AudioManager.Instance?.PlayDealerReveal();
         yield return new WaitForSeconds(0.5f);
         OnHandUpdated?.Invoke(playerHand.GetValue(), dealerHand.GetValue().ToString());
